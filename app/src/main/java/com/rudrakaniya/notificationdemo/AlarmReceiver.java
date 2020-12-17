@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -17,13 +18,17 @@ import static android.app.NotificationManager.IMPORTANCE_DEFAULT;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    private static final String TAG = "AlarmReceiver";
     private static final String CHANNEL_ID = "com.rudrakaniya.notificationDemo.channelId";
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Intent myIntent = intent;
 
-        Uri uri = Uri.parse("https://meet.google.com/hzt-jnbt-jkw");
+        Uri uri = Uri.parse(myIntent.getStringExtra("link"));
         Intent linkIntent = new Intent(Intent.ACTION_VIEW, uri);
+
+        Log.d(TAG, "onReceive: " + myIntent.getStringExtra("hero"));
 
 //        Intent notificationIntent = new Intent(context, NotificationActivity.class);
 
@@ -34,12 +39,18 @@ public class AlarmReceiver extends BroadcastReceiver {
         PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Notification.Builder builder = new Notification.Builder(context,CHANNEL_ID);
+//                .setTimeoutAfter(1000000)
 
-        Notification notification = builder.setContentTitle("Demo App Notification")
+        Notification notification = builder.setContentTitle(myIntent.getStringExtra("text"))
                 .setContentText("New Notification From Demo App..")
                 .setTicker("New Message Alert!")
                 .setSmallIcon(R.mipmap.ic_launcher)
+                .setTimeoutAfter(1000000)
                 .setContentIntent(pendingIntent).build();
+
+
+        // Will show lights and make the notification disappear when the presses it
+        notification.flags = Notification.FLAG_AUTO_CANCEL;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_ID);
@@ -56,6 +67,6 @@ public class AlarmReceiver extends BroadcastReceiver {
             notificationManager.createNotificationChannel(channel);
         }
 
-        notificationManager.notify(0, notification);
+        notificationManager.notify((int) System.currentTimeMillis(), notification);
     }
 }
